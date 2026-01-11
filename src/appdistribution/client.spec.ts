@@ -420,6 +420,40 @@ describe("distribution", () => {
     });
   });
 
+  describe("getRelease", () => {
+    it("should throw error if request fails", async () => {
+      nock(appDistributionOrigin())
+        .get(`/v1/${appName}/releases/fake-release-id`)
+        .reply(400, { error: { status: "FAILED_PRECONDITION" } });
+
+      await expect(appDistributionClient.getRelease(`${appName}/releases/fake-release-id`)).to.be
+        .rejected;
+      expect(nock.isDone()).to.be.true;
+    });
+
+    it("should resolve with release when request succeeds", async () => {
+      const mockRelease = {
+        name: `${appName}/releases/fake-release-id`,
+        displayVersion: "1.0.0",
+        buildVersion: "100",
+        releaseNotes: { text: "Initial release" },
+        createTime: "2024-08-20T12:00:00Z",
+        testingUri: "https://testing.uri",
+        firebaseConsoleUri: "https://firebase.console.uri",
+        binaryDownloadUri: "https://binary.download.uri",
+      };
+
+      nock(appDistributionOrigin())
+        .get(`/v1/${appName}/releases/fake-release-id`)
+        .reply(200, mockRelease);
+
+      await expect(
+        appDistributionClient.getRelease(`${appName}/releases/fake-release-id`),
+      ).to.eventually.deep.eq(mockRelease);
+      expect(nock.isDone()).to.be.true;
+    });
+  });
+
   describe("listReleases", () => {
     it("should throw error if request fails", async () => {
       nock(appDistributionOrigin())

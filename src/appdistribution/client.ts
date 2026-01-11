@@ -199,6 +199,16 @@ export class AppDistributionClient {
     return apiResponse.body;
   }
 
+  async getRelease(releaseName: string): Promise<Release> {
+    try {
+      const apiResponse = await this.appDistroV1Client.get<Release>(releaseName);
+
+      return apiResponse.body;
+    } catch (err: unknown) {
+      throw new FirebaseError(`Failed to get release ${getErrMsg(err)}`);
+    }
+  }
+
   async listReleases(appName: string, filter?: string): Promise<Release[]> {
     const releases: Release[] = [];
     const client = this.appDistroV1Client;
