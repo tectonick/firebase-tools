@@ -31,6 +31,8 @@ export function load(client: CLIClient): CLIClient {
 
   client.appdistribution = {};
   client.appdistribution.distribute = loadCommand("appdistribution-distribute");
+  client.appdistribution.releases = {};
+  client.appdistribution.releases.list = loadCommand("appdistribution-releases-list");
   client.appdistribution.testers = {};
   client.appdistribution.testers.list = loadCommand("appdistribution-testers-list");
   client.appdistribution.testers.add = loadCommand("appdistribution-testers-add");

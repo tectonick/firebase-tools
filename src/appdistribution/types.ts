@@ -51,6 +51,11 @@ export interface UploadReleaseResponse {
   release: Release;
 }
 
+export interface ListReleasesResponse {
+  releases: Release[];
+  nextPageToken?: string;
+}
+
 export interface BatchRemoveTestersResponse {
   emails: string[];
 }

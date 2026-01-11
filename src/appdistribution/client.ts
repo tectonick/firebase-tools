@@ -15,9 +15,11 @@ import {
   BatchUpdateTestCasesResponse,
   Group,
   ListGroupsResponse,
+  ListReleasesResponse,
   ListTestCasesResponse,
   ListTestersResponse,
   LoginCredential,
+  Release,
   ReleaseTest,
   TestCase,
   TestDevice,
@@ -195,6 +197,39 @@ export class AppDistributionClient {
       throw new FirebaseError(`Failed to remove testers ${getErrMsg(err)}`);
     }
     return apiResponse.body;
+  }
+
+  async listReleases(appName: string, filter?: string): Promise<Release[]> {
+    const releases: Release[] = [];
+    const client = this.appDistroV1Client;
+    const baseQueryParams: Record<string, string> = {};
+
+    if (filter) {
+      baseQueryParams.filter = filter;
+    }
+
+    let nextPageToken: string | undefined;
+
+    do {
+      const queryParams: Record<string, string> = { ...baseQueryParams };
+
+      if (nextPageToken) {
+        queryParams.pageToken = nextPageToken;
+      }
+
+      try {
+        const apiResponse = await client.get<ListReleasesResponse>(`${appName}/releases`, {
+          queryParams,
+        });
+
+        releases.push(...(apiResponse.body.releases ?? []));
+        nextPageToken = apiResponse.body.nextPageToken;
+      } catch (err: unknown) {
+        throw new FirebaseError(`Client failed to list releases ${getErrMsg(err)}`);
+      }
+    } while (nextPageToken);
+
+    return releases;
   }
 
   async listGroups(projectName: string): Promise<Group[]> {

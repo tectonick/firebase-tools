@@ -420,6 +420,43 @@ describe("distribution", () => {
     });
   });
 
+  describe("listReleases", () => {
+    it("should throw error if request fails", async () => {
+      nock(appDistributionOrigin())
+        .get(`/v1/${appName}/releases`)
+        .reply(400, { error: { status: "FAILED_PRECONDITION" } });
+
+      await expect(appDistributionClient.listReleases(appName)).to.be.rejected;
+      expect(nock.isDone()).to.be.true;
+    });
+
+    it("should resolve with array of releases when request succeeds", async () => {
+      const releases = [
+        {
+          name: `${appName}/releases/release_1`,
+          displayVersion: "1.0.0",
+          buildVersion: "100",
+          releaseNotes: { text: "Initial release" },
+          createTime: "2024-08-20T12:00:00Z",
+        },
+        {
+          name: `${appName}/releases/release_2`,
+          displayVersion: "1.1.0",
+          buildVersion: "110",
+          releaseNotes: { text: "Bug fixes" },
+          createTime: "2024-08-25T12:00:00Z",
+        },
+      ];
+
+      nock(appDistributionOrigin()).get(`/v1/${appName}/releases`).reply(200, {
+        releases: releases,
+      });
+
+      await expect(appDistributionClient.listReleases(appName)).to.eventually.deep.eq(releases);
+      expect(nock.isDone()).to.be.true;
+    });
+  });
+
   describe("createReleaseTest", () => {
     const releaseName = `${appName}/releases/fake-release-id`;
     const mockDevices: TestDevice[] = [
