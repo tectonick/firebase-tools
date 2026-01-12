@@ -209,10 +209,16 @@ export class AppDistributionClient {
     }
   }
 
-  async listReleases(appName: string, filter?: string): Promise<Release[]> {
+  async listReleases(appName: string, filter?: string, limit?: number): Promise<Release[]> {
+    const MAX_RELEASES_PAGE_SIZE = 100;
+    const DEFAULT_PAGE_SIZE = 25;
+
+    const shouldCapResults = limit !== undefined && limit > 0;
+    const pageSize = Math.min(shouldCapResults ? limit : DEFAULT_PAGE_SIZE, MAX_RELEASES_PAGE_SIZE);
+
     const releases: Release[] = [];
     const client = this.appDistroV1Client;
-    const baseQueryParams: Record<string, string> = {};
+    const baseQueryParams: Record<string, string> = { pageSize: pageSize.toString() };
 
     if (filter) {
       baseQueryParams.filter = filter;
@@ -233,13 +239,18 @@ export class AppDistributionClient {
         });
 
         releases.push(...(apiResponse.body.releases ?? []));
+
+        if (shouldCapResults && releases.length >= limit) {
+          break;
+        }
+
         nextPageToken = apiResponse.body.nextPageToken;
       } catch (err: unknown) {
         throw new FirebaseError(`Client failed to list releases ${getErrMsg(err)}`);
       }
     } while (nextPageToken);
 
-    return releases;
+    return shouldCapResults ? releases.slice(0, limit) : releases;
   }
 
   async listGroups(projectName: string): Promise<Group[]> {

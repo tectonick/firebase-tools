@@ -457,7 +457,7 @@ describe("distribution", () => {
   describe("listReleases", () => {
     it("should throw error if request fails", async () => {
       nock(appDistributionOrigin())
-        .get(`/v1/${appName}/releases`)
+        .get(`/v1/${appName}/releases?pageSize=25`)
         .reply(400, { error: { status: "FAILED_PRECONDITION" } });
 
       await expect(appDistributionClient.listReleases(appName)).to.be.rejected;
@@ -482,7 +482,7 @@ describe("distribution", () => {
         },
       ];
 
-      nock(appDistributionOrigin()).get(`/v1/${appName}/releases`).reply(200, {
+      nock(appDistributionOrigin()).get(`/v1/${appName}/releases?pageSize=25`).reply(200, {
         releases: releases,
       });
 

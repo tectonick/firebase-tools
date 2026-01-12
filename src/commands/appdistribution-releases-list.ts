@@ -13,6 +13,7 @@ import * as Table from "cli-table3";
 interface ListReleasesOptions extends Options {
   app: string;
   filter?: string;
+  limit?: number;
 }
 
 export const command = new Command("appdistribution:releases:list")
@@ -20,7 +21,11 @@ export const command = new Command("appdistribution:releases:list")
   .option("--app <app_id>", "the app id of your Firebase app")
   .option(
     "--filter <filter>",
-    'Filters releases by their createTime or releaseNotes. Example: `createTime <= "2021-09-08T00:00:00+04:00" AND releaseNotes.text="fixes"`',
+    'filters releases by their createTime or releaseNotes (example: `createTime <= "2021-09-08T00:00:00+04:00" AND releaseNotes.text="fixes"`)',
+  )
+  .option(
+    "--limit <number>",
+    "maximum number of releases to list (default: 25, pass 0 for no limit)",
   )
   .before(requireAuth)
   .action(async (options?: ListReleasesOptions): Promise<ListReleasesResponse> => {
@@ -31,10 +36,10 @@ export const command = new Command("appdistribution:releases:list")
     let releases: Release[];
     const spinner = ora("Preparing the list of your App Distribution Releases").start();
     try {
-      releases = await appDistroClient.listReleases(appName, options?.filter);
+      releases = await appDistroClient.listReleases(appName, options?.filter, options?.limit);
     } catch (err: any) {
       spinner.fail();
-      throw new FirebaseError("Failed to list groups.", {
+      throw new FirebaseError("Failed to list releases", {
         exit: 1,
         original: err,
       });
